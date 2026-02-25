@@ -1,7 +1,5 @@
-variable "domain_name" {
-  default = "victorlayade.com"
-}
-
 variable "bucket_name" {
-  default = "victorlayade.com-web"
+  description = "Name of the S3 bucket that stores the static site files"
+  type        = string
+  default     = "admiral-truck.web"
 }

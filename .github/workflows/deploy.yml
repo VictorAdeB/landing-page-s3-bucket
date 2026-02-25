@@ -1,28 +1,23 @@
-name: Deploy React to S3
+name: Deploy React Build (S3 + CloudFront)
 
 on:
   push:
     branches:
       - main
+    paths:
+      - "build/**"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
+      # No Node setup
+      # No npm install
+      # No npm build
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -31,11 +26,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
-      - name: Upload to S3
+      - name: Deploy build folder to S3
         run: |
-          aws s3 sync build/ s3://xyz.com-web --delete
+          aws s3 sync build/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
 
-      - name: Invalidate CloudFront
+      - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
