@@ -1,5 +1,5 @@
 
 
 aws cloudfront create-invalidation \
-  --distribution-id E1BFBEW0WRKR13 \
+  --distribution-id (your.id) \
   --paths "/*"
