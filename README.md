@@ -25,14 +25,12 @@ aws configure
 
 # Upload build artifacts
 ```
-aws s3 sync build/ s3://admiral-truck.web --delete
+aws s3 sync build/ "s3://${S3_BUCKET}" --delete
 ```
 
 # Invalidate CloudFront cache (replace with your distribution ID)
 ```
-aws cloudfront create-invalidation \
-  --distribution-id E1BFBEW0WRKR13 \
-  --paths "/*"
+aws cloudfront create-invalidation --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" --paths "/*"
   ```
 
  <strong> These steps are fully automated in the GitHub Actions workflow:</strong>
@@ -59,3 +57,33 @@ Triggers on changes to the build/ folder (or manual dispatch)
             ↓</br>
      CloudFront (HTTPS + caching + global CDN)</br> </center>
      </strong>
+
+
+
+
+### 🛠 Tech Stack
+
+* React (CRA)
+* Terraform ≥ 1.5
+* AWS S3 + CloudFront + Origin Access Control
+* GitHub Actions
+* AWS CLI
+
+
+
+### 📌 Key Takeaways
+
+* Infrastructure and application deployment concerns are cleanly separated
+* S3 bucket stays private (secured via OAC — no public bucket policy)
+* CloudFront provides HTTPS termination, caching, and global distribution
+* Deployment is fast, repeatable, and secure
+
+### 🌐 How to Access the Deployed Application
+After successful terraform apply:
+
+```
+https://yourcloudforntdomain.cloudfront.net
+# or whatever domain alias / custom domain you configured
+```
+
+Use the cloudfront_url or cloudfront_domain_name output value
