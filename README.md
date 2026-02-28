@@ -1,70 +1,61 @@
-# Getting Started with Create React App
+# React App Deployment with Terraform, S3 & CloudFront
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project demonstrates how to deploy a **React single-page application** (SPA) to **AWS S3** and serve it securely through **CloudFront**, with all infrastructure defined as code using **Terraform** and automated deployment via **GitHub Actions**.
 
-## Available Scripts
+## 🚀 What Was Implemented
 
-In the project directory, you can run:
+1. **Infrastructure as Code (Terraform)**
 
-### `npm start`
+   Provisions:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+   - Private S3 bucket configured for static website hosting
+   - CloudFront distribution
+   - Origin Access Control (OAC) → secure bucket access (no public bucket policy)
+   - Proper SPA routing support (`index.html` fallback for all paths)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+   Typical workflow:
 
-### `npm test`
+   ```bash
+   terraform init
+   terraform plan -out=tfplan
+   terraform apply tfplan
+   ```
+   # Configure credentials (only needed once)
+aws configure
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# Upload build artifacts
+```
+aws s3 sync build/ s3://admiral-truck.web --delete
+```
 
-### `npm run build`
+# Invalidate CloudFront cache (replace with your distribution ID)
+```
+aws cloudfront create-invalidation \
+  --distribution-id E1BFBEW0WRKR13 \
+  --paths "/*"
+  ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+ <strong> These steps are fully automated in the GitHub Actions workflow:</strong>
+* GitHub Actions CI/CD Workflow
+Triggers on changes to the build/ folder (or manual dispatch)
+* Uploads files directly to S3
+* Invalidates CloudFront cache
+* Important architectural decision:
+* ❌ No npm run build inside CI
+* ❌ No lint / test steps in deployment pipeline
+* ✅ Deploys pre-built artifacts only
+* Reason: CI=true makes ESLint treat warnings as errors → avoids unnecessary CI failures.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 📦 Deployment Flow
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+<strong>
+   <center> Local →  npm run build </br>
+            ↓</br>
+      commit build/ folder</br>
+            ↓</br>
+     GitHub Actions (on push / manual) </br>
+            ↓</br>
+       AWS S3 (private bucket)</br>
+            ↓</br>
+     CloudFront (HTTPS + caching + global CDN)</br> </center>
+     </strong>
