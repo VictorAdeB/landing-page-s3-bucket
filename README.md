@@ -1,6 +1,6 @@
 # React App Deployment with Terraform, S3 & CloudFront
 
-![AWS EKS Retail Store Diagram](./images/Blank%20diagram%20(1).png)
+![AWS Static Deployment Diagram](./images/Blank%20diagram%20(1).png)
 
 
 This project demonstrates how to deploy a **React single-page application** (SPA) to **AWS S3** and serve it securely through **CloudFront**, with all infrastructure defined as code using **Terraform** and automated deployment via **GitHub Actions**.
